@@ -158,6 +158,6 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: 'summary'
+          format: 'table'    # table, json, sarif, etc.
           exit-code: '1'       # non-zero on vulnerabilities
           severity: 'CRITICAL,HIGH'   # fail only on high/critical
