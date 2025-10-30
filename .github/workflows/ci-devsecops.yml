@@ -138,7 +138,7 @@ jobs:
 
       - name: Output image tags
         run: |
-          echo "Pushed $IMAGE_NAME:latest and $IMAGE_NAME:${{ github.sha }}"
+          echo "Pushed ${{ env.IMAGE_NAME }}:latest and ${{ env.IMAGE_NAME }}:${{ github.sha }}"
 
   trivy_scan:
     name: Image Scan (Trivy) — scan image from Docker Hub
