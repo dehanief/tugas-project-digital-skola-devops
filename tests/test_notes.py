@@ -1,13 +1,14 @@
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
 client = TestClient(app)
 
+
 def test_health():
     r = client.get("/healthz")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
+
 
 def test_crud_notes():
     payload = {"title": "hello", "content": "world"}
@@ -33,6 +34,7 @@ def test_crud_notes():
 
     r = client.get(f"/notes/{note_id}")
     assert r.status_code == 404
+
 
 def test_validation():
     r = client.post("/notes", json={"title": "", "content": ""})
