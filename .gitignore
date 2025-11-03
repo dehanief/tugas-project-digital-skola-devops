@@ -1,4 +1,5 @@
 node_modules
 coverage
+k6-output/
 .nyc_output
 .env
