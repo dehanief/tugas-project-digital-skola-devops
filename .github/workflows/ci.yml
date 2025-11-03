@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [ sesi31-loadtest ]
+  pull_request:
+    branches: [ sesi31-loadtest ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint (ESLint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  test:
+    name: Unit Test (Jest)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+
+  sonar:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.projectKey=notes-app-sonar
+            -Dsonar.organization=https://sonarcloud.io/organizations/dehanief/projects
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  k6-smoke:
+    name: k6 Smoke Test
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg software-properties-common curl
+          curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Start server in background
+        run: npm start &
+
+      - name: Run k6 smoke test
+        env:
+          BASE_URL: http://127.0.0.1:3000
+        run: npm run k6
+
+      - name: Upload k6 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-result
+          path: k6-output/result.json

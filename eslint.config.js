@@ -15,6 +15,13 @@ module.exports = [
       node: true, 
       jest: true 
     },
+
+    globals: {
+      __ENV: 'readonly',
+      http: 'readonly',
+      sleep: 'readonly',
+      check: 'readonly'
+    },
     rules: {
       "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
       "no-console": "off",

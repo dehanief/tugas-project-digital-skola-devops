@@ -38,3 +38,33 @@ test('DELETE /notes/:id should remove note', async () => {
   const res = await request(app).delete(`/notes/${created.body.id}`);
   expect(res.status).toBe(204);
 });
+
+
+describe('Notes App - Branch Coverage Tests', () => {
+  test('GET /notes/:id not found should return 404', async () => {
+    const res = await request(app).get('/notes/999');
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'not found' });
+  });
+
+  test('POST /notes without title or body should return 400', async () => {
+    let res = await request(app).post('/notes').send({ body: 'B' });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'title & body required' });
+
+    res = await request(app).post('/notes').send({ title: 'A' });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'title & body required' });
+  });
+
+  test('PUT /notes/:id not found should return 404', async () => {
+    const res = await request(app).put('/notes/999').send({ title: 'X', body: 'Y' });
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'not found' });
+  });
+
+  test('DELETE /notes/:id not found should return 404', async () => {
+    const res = await request(app).delete('/notes/999');
+    expect(res.status).toBe(404);
+  });
+});
